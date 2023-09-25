@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
-import { type Post, getReplies, addPost } from '../api/forum'
+import { ref, reactive, watch } from 'vue'
+import { type Post, type PostCreate, getPost, getReplies, addPost } from '../api/forum'
 import PostElem from './Post.vue'
+import ReplyModal from './ReplyModal.vue'
+
 type Thread = Post[]
 const threads: Thread[] = reactive([getReplies(null)])
 var selection = reactive({ thread: 0, post: 0 })
@@ -33,16 +35,29 @@ window.addEventListener('keydown', (e) => {
         if (selection.post < threads[selection.thread].length - 1) selection.post++
     }
 })
+
+let replyModal = ref({ showModal: (post: Post) => null });
+function showReply(post: Post) {
+    replyModal.value.showModal(post);
+}
+
+function addReply(post: PostCreate) {
+    const id = addPost(post);
+    threads[selection.thread + 1].push(getPost(id));
+}
 </script>
 
 <template>
+    <ReplyModal ref="replyModal" @reply="addReply"></ReplyModal>
     <div class="board">
         <div v-for="(thread, threadIndex) in threads" class="thread"
             :key="threadIndex === threads[threadIndex - 1]?.[parents[threadIndex - 1]]?.id">
-            <div class="postSlot" v-for="(post, postIndex) in thread" :key="post.id"
-                v-on:click="selection.thread = threadIndex; selection.post = postIndex">
+            <div v-for="(post, postIndex) in thread" class="postSlot" :key="post.id"
+                @click="selection.thread = threadIndex; selection.post = postIndex">
                 <PostElem :post=post :parent="parents[threadIndex] !== undefined && parents[threadIndex] === postIndex"
-                    :selected="selection.thread === threadIndex && selection.post === postIndex" />
+                    :selected="selection.thread === threadIndex && selection.post === postIndex"
+                    :show-reply-button="true"
+                    @reply="showReply(post)" />
             </div>
         </div>
     </div>

@@ -6,7 +6,7 @@ const router = createRouter({
     {
       path: '/thread/:id',
       name: 'thread',
-      component: () => import('../thread/View.vue')
+      component: () => import('../forum/View.vue')
     }
   ]
 })

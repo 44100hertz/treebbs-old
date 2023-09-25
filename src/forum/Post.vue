@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Post } from '../api/forum'
+import type { Post } from '../api/forum'
 // declare props
 const props = defineProps<{
     post: Post
-    selected: boolean
-    parent: boolean
+    selected?: boolean
+    parent?: boolean
+    showReplyButton?: boolean
 }>();
+
 </script>
 
 <template>
@@ -13,7 +15,7 @@ const props = defineProps<{
         <p class="author">{{ post.author }}</p>
         <p class="date">({{ post.createdAt.toLocaleString() }})</p>
         <p>{{ post.text }}</p>
-        <p><button>Reply</button></p>
+        <p v-if="showReplyButton"><button v-on:click="$emit('reply')">Reply</button></p>
     </article>
 </template>
 
@@ -21,11 +23,14 @@ const props = defineProps<{
 .post {
     width: 100%;
     padding: 1em;
-    background: #fff4ee;
+    background: #efe8e0;
+    transition: background 0.2s;
     box-sizing: border-box;
+    border-radius: 0.5em;
 }
 .post.parent {
-    background: #ffb0b0;
+    background: #efc8a8;
+    transition: background 0.2s;
 }
 
 .post.selected {
