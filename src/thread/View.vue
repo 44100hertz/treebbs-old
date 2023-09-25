@@ -1,42 +1,39 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue';
-import { type Post, getReplies, addPost } from '../api/forum';
-type Thread = Post[];
-const threads: Thread[] = reactive([getReplies(null)]);
-var selection = reactive({ thread: 0, post: 0 });
-var parents = reactive([0]);
+import { reactive, watch } from 'vue'
+import { type Post, getReplies, addPost } from '../api/forum'
+type Thread = Post[]
+const threads: Thread[] = reactive([getReplies(null)])
+var selection = reactive({ thread: 0, post: 0 })
+var parents = reactive([0])
 
 // TODO: replace replyBox with reply button that opens a modal that isolates which post is actually being replied to.
 
 watch(
     selection,
     async () => {
-        const post = threads[selection.thread][selection.post];
-        const replies: Thread = await getReplies(post.id as any);
-        parents[selection.thread] = selection.post;
-        parents.length = selection.thread + 1;
-        threads[selection.thread + 1] = replies;
-        threads.length = selection.thread + 2;
+        const post = threads[selection.thread][selection.post]
+        const replies: Thread = await getReplies(post.id as any)
+        parents[selection.thread] = selection.post
+        parents.length = selection.thread + 1
+        threads[selection.thread + 1] = replies
+        threads.length = selection.thread + 2
     },
     { deep: true, immediate: true }
-);
+)
 
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') {
-        selection.thread--;
+        if (selection.thread > 0) selection.thread--
+        selection.post = parents[selection.thread]
     } else if (e.key === 'ArrowRight') {
-        selection.thread++;
+        if (threads[selection.thread + 1]?.length) selection.thread++
+        selection.post = 0
     } else if (e.key === 'ArrowUp') {
-        selection.post--;
+        if (selection.post > 0) selection.post--
     } else if (e.key === 'ArrowDown') {
-        selection.post++;
+        if (selection.post < threads[selection.thread].length - 1) selection.post++
     }
-    const clamp = (x: number, min: number, max: number) =>
-        Math.min(Math.max(x, min), max);
-    selection.thread = clamp(selection.thread, 0, threads.length - 1);
-    selection.post = clamp(selection.post, 0, threads[selection.thread].length - 1);
-});
-
+})
 </script>
 
 <template>
@@ -47,11 +44,11 @@ window.addEventListener('keydown', (e) => {
                 parent: parents[threadIndex] !== undefined && parents[threadIndex] === postIndex,
                 selected: selection.thread === threadIndex && selection.post === postIndex
             }" :key="post.id" v-on:click="selection.thread = threadIndex; selection.post = postIndex">
-            <article>
-                <p class="author">{{ post.author }}</p>
-                <p class="date">({{ post.createdAt.toLocaleString() }})</p>
-                <p>{{ post.text }}</p>
-            </article>
+                <article>
+                    <p class="author">{{ post.author }}</p>
+                    <p class="date">({{ post.createdAt.toLocaleString() }})</p>
+                    <p>{{ post.text }}</p>
+                </article>
             </div>
         </div>
     </div>
@@ -94,7 +91,7 @@ window.addEventListener('keydown', (e) => {
 
 .post.selected {
     border: 4px solid black;
-    padding: calc(1em - 4px)
+    padding: calc(1em - 4px);
 }
 
 .post p {
