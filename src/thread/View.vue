@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
 import { type Post, getReplies, addPost } from '../api/forum'
+import PostElem from './Post.vue'
 type Thread = Post[]
 const threads: Thread[] = reactive([getReplies(null)])
 var selection = reactive({ thread: 0, post: 0 })
 var parents = reactive([0])
-
-// TODO: replace replyBox with reply button that opens a modal that isolates which post is actually being replied to.
 
 watch(
     selection,
@@ -38,17 +37,12 @@ window.addEventListener('keydown', (e) => {
 
 <template>
     <div class="board">
-        <div v-for="(thread, threadIndex) in threads" class="postColumn"
+        <div v-for="(thread, threadIndex) in threads" class="thread"
             :key="threadIndex === threads[threadIndex - 1]?.[parents[threadIndex - 1]]?.id">
-            <div v-for="(post, postIndex) in thread" class="post" :class="{
-                parent: parents[threadIndex] !== undefined && parents[threadIndex] === postIndex,
-                selected: selection.thread === threadIndex && selection.post === postIndex
-            }" :key="post.id" v-on:click="selection.thread = threadIndex; selection.post = postIndex">
-                <article>
-                    <p class="author">{{ post.author }}</p>
-                    <p class="date">({{ post.createdAt.toLocaleString() }})</p>
-                    <p>{{ post.text }}</p>
-                </article>
+            <div class="postSlot" v-for="(post, postIndex) in thread" :key="post.id"
+                v-on:click="selection.thread = threadIndex; selection.post = postIndex">
+                <PostElem :post=post :parent="parents[threadIndex] !== undefined && parents[threadIndex] === postIndex"
+                    :selected="selection.thread === threadIndex && selection.post === postIndex" />
             </div>
         </div>
     </div>
@@ -61,40 +55,15 @@ window.addEventListener('keydown', (e) => {
     justify-content: start;
 }
 
-.postColumn {
-    width: 15em;
+.thread {
+    width: 18em;
     display: flex;
-    padding: 0 1.5em;
+    padding: 0 0.5em;
     flex-direction: column;
-    align-items: center;
 }
 
-.post {
+.postSlot {
     width: 100%;
-    margin: 0.5em 0;
-    padding: 1em;
-    background: #fff4ee;
-}
-
-.author {
-    font-weight: bold;
-}
-
-.date {
-    font-size: 0.8em;
-    color: #555;
-}
-
-.post.parent {
-    background: #ffb0b0;
-}
-
-.post.selected {
-    border: 4px solid black;
-    padding: calc(1em - 4px);
-}
-
-.post p {
-    margin: 0.2em 0em;
+    padding: 0.5em 0;
 }
 </style>
