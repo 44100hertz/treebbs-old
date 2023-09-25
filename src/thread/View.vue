@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import { type Post, getReplies } from '../api/forum';
-type ReplyBox = { id: 'replyBox' };
-type Thread = Array<Post | ReplyBox>;
+import { type Post, getReplies, addPost } from '../api/forum';
+type Thread = Post[];
 const threads: Thread[] = reactive([getReplies(null)]);
 var selection = reactive({ thread: 0, post: 0 });
 var parents = reactive([0]);
+
+// TODO: replace replyBox with reply button that opens a modal that isolates which post is actually being replied to.
 
 watch(
     selection,
     async () => {
         const post = threads[selection.thread][selection.post];
-        if (post.id === 'replyBox') {
-            return;
-        }
         const replies: Thread = await getReplies(post.id as any);
-        replies.push({ id: 'replyBox' });
         parents[selection.thread] = selection.post;
         parents.length = selection.thread + 1;
         threads[selection.thread + 1] = replies;
@@ -39,6 +36,7 @@ window.addEventListener('keydown', (e) => {
     selection.thread = clamp(selection.thread, 0, threads.length - 1);
     selection.post = clamp(selection.post, 0, threads[selection.thread].length - 1);
 });
+
 </script>
 
 <template>
@@ -49,19 +47,11 @@ window.addEventListener('keydown', (e) => {
                 parent: parents[threadIndex] !== undefined && parents[threadIndex] === postIndex,
                 selected: selection.thread === threadIndex && selection.post === postIndex
             }" :key="post.id" v-on:click="selection.thread = threadIndex; selection.post = postIndex">
-                <div v-if="post.id === 'replyBox'">
-                    <p>Author:
-                        <input type=text />
-                    </p>
-                        <textarea></textarea>
-                        <br />
-                        <button>Reply</button>
-                </div>
-                <article v-else>
-                    <p class="author">{{ post.author }}</p>
-                    <p class="date">({{ post.createdAt.toLocaleString() }})</p>
-                    <p>{{ post.text }}</p>
-                </article>
+            <article>
+                <p class="author">{{ post.author }}</p>
+                <p class="date">({{ post.createdAt.toLocaleString() }})</p>
+                <p>{{ post.text }}</p>
+            </article>
             </div>
         </div>
     </div>
